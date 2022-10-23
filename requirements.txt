@@ -1,7 +1,6 @@
 certifi==2022.9.24
 charset-normalizer==2.1.1
 colored==1.4.3
-Gooey==1.0.8.1
 googlemaps==4.6.0
 idna==3.4
 numpy==1.23.4
@@ -12,4 +11,3 @@ python-dotenv==0.21.0
 requests==2.28.1
 six==1.16.0
 urllib3==1.26.12
-wxPython==4.2.0
