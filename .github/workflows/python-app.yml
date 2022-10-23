@@ -23,6 +23,7 @@ env:
   PLACES_LOCATION: ${{ github.event.inputs.places_location }}
   PLACES_TYPE: ${{ github.event.inputs.places_type }}
   PLACES_MAX_RESULT: ${{ github.event.inputs.places_max_result }}
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
   
 jobs:
   build:
