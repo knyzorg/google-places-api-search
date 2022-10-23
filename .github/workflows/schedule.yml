@@ -1,0 +1,16 @@
+name: "Scheduled dispatch"
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger data job
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Query Location
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          inputs: '{ "places_location": "Ottawa", "places_type": "restaurant", "places_max_result": "999999" }'
