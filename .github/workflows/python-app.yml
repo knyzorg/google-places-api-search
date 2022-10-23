@@ -42,10 +42,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest attrdict3
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        mkdir -p results
         
     - name: Run program
       run: |
         python ./main.py
         
-    - name: Print output
-      run: cat ./main.tsv
+    - name: Save results
+      run: |
+        git add results
+        git commit -m "New Data"
+        git push
+      
+    
