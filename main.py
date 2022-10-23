@@ -227,8 +227,7 @@ def main():
 
                 # lat ang long from geocode
                 location=f"{geocode['lat']},{geocode['lng']}",
-                page_token=page_token,
-                rank_by="distance"
+                page_token=page_token
             )
 
             # assign next page token
