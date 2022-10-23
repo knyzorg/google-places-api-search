@@ -294,14 +294,17 @@ def main():
                             
                             
                             # get opening closing periods
-                            _open = period["open"]
-                            _close = period["close"]
+                            _open = period.get("open")
                             
-
+                            _close = period.get("close")
+                            
                             # 2200 -> 22:00
                             opening_hour = ":".join(textwrap.wrap(_open["time"], 2))
-                            closing_hour = ":".join(textwrap.wrap(_close["time"], 2))
-
+                            if _close is None:                                
+                                closing_hour = ":".join(textwrap.wrap(_close["time"], 2))
+                            else:
+                                closing_hour = ""
+                                
                             opening_fields.append(f"{opening_hour} - {closing_hour}")
                         
                         except IndexError:
