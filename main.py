@@ -195,7 +195,7 @@ def main():
 
     
     # token for getting the next results
-    page_token = False
+    page_token = None
 
     # get complete details of each place
     with open("main.tsv", "wt", newline="", encoding="utf-8") as tsv:
@@ -219,41 +219,32 @@ def main():
     
         result_counter = 0
         # if counter is less than max results
-        while result_counter != client_max_results:
+        while result_counter <= client_max_results:
     
-            if not page_token and result_counter == 0:            
-                # search for places
-                data = client.places(
-
-                    # query i.e coffee shop
-                    query=args.places_search,
-
-                    # type i.e restaurant
-                    type=args.places_type,
-
-                    # lat ang long from geocode
-                    location=f"{geocode['lat']},{geocode['lng']}",
-                )
-
-                # assign next page token
-                page_token = data.get("next_page_token")
-
-            elif page_token:
+            if page_token is None and result_counter > 0:
+                print("Process complete");
+                break
+            
+            if page_token is not None:
                 # delay the next request
                 # sometimes google server needs
                 # time to serve the next page token
                 time.sleep(3)
+            data = client.places(
 
-                # search for places using the next page
-                data = client.places(page_token=page_token)
-            
-            else:
-                # break the loop
-                # no more search results
-                data = False
+                # query i.e coffee shop
+                query=args.places_search,
 
-            if not data:
-                break
+                # type i.e restaurant
+                type=args.places_type,
+
+                # lat ang long from geocode
+                location=f"{geocode['lat']},{geocode['lng']}",
+                page_token=page_token
+            )
+
+            # assign next page token
+            page_token = data.get("next_page_token")
 
             # for each data results 
             for place in data["results"]:
@@ -347,10 +338,6 @@ def main():
 
         # end
         tsv.close()
-
-    
-
-
 
 if __name__ == "__main__":
     main()
