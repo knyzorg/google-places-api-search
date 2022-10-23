@@ -185,7 +185,7 @@ def main():
     page_token = None
 
     # get complete details of each place
-    with open("main.tsv", "wt", newline="", encoding="utf-8") as tsv:
+    with open(f"results_{args.places_search}_{args.places_location}_{args.places_type}.tsv", "wt", newline="", encoding="utf-8") as tsv:
         tsv_write = csv.writer(tsv, delimiter="\t")
 
         # write columns
