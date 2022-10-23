@@ -38,7 +38,7 @@ jobs:
         
     - name: Install dependencies
       run: |
-        apt install xvfb
+        sudo apt install xvfb
         python -m pip install --upgrade pip
         pip install flake8 pytest attrdict3
         if [ -f requirements.txt ]; then xvfb-run pip install -r requirements.txt; fi
