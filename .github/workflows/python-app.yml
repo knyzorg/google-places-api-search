@@ -1,0 +1,50 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  workflow_dispatch:
+    inputs:
+      places_search: 
+        type: text
+      places_location:
+        type: text
+        default: 'Ottawa'
+      places_type:
+        type: text
+        default: 'restaurant'
+      places_max_result:
+        type: text
+        default: '9999999'
+
+env:
+  PLACES_SEARCH: ${{ github.event.inputs.places_search }}
+  PLACES_LOCATION: ${{ github.event.inputs.places_location }}
+  PLACES_TYPE: ${{ github.event.inputs.places_type }}
+  PLACES_MAX_RESULT: ${{ github.event.inputs.places_max_result }}
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+    - name: Run program
+      run: |
+        python ./main.py
+        
+    - name: Print output
+      run: cat ./main.tsv
