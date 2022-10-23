@@ -300,10 +300,11 @@ def main():
                             
                             # 2200 -> 22:00
                             opening_hour = ":".join(textwrap.wrap(_open["time"], 2))
-                            if _close is None:                                
-                                closing_hour = ":".join(textwrap.wrap(_close["time"], 2))
+                            if _close is None:    
+                                closing_hour = ""                            
                             else:
-                                closing_hour = ""
+                                closing_hour = ":".join(textwrap.wrap(_close["time"], 2))
+
                                 
                             opening_fields.append(f"{opening_hour} - {closing_hour}")
                         
