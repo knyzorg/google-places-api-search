@@ -216,7 +216,7 @@ def main():
                 # delay the next request
                 # sometimes google server needs
                 # time to serve the next page token
-                time.sleep(3)
+                time.sleep(0.05)
             data = client.places(
 
                 # query i.e coffee shop
@@ -227,7 +227,8 @@ def main():
 
                 # lat ang long from geocode
                 location=f"{geocode['lat']},{geocode['lng']}",
-                page_token=page_token
+                page_token=page_token,
+                rankby=distance
             )
 
             # assign next page token
@@ -245,6 +246,7 @@ def main():
 
                 place_id = place["place_id"]
                 # request for specific details of a place
+                time.sleep(0.05)
                 data = client.place(place_id=place_id,
                     fields=[
                         "name",
