@@ -2,26 +2,16 @@ import os
 import json
 import csv
 import time 
-import gooey
+import argparse
 import dotenv
 import textwrap
 import googlemaps
 
 dotenv.load_dotenv()
 
-"""
-Main application with Gooey
-to switch from CLI use --ignore-gooey
-"""
-@gooey.Gooey(
-    # GUI setup
-    program_name=f"google-places-api-search",
-    required_cols=1,
-    default_size=(400, 800),
-)
 def main():
-    # Gooey parser
-    parser = gooey.GooeyParser()
+    # argparse parser
+    parser = argparse.ArgumentParser()
 
     # Required argument API key
     # key can be found in credentials
