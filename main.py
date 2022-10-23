@@ -56,11 +56,8 @@ def main():
     # filter the search results with valid place types
     # i.e restaurant accounting
     parser.add_argument('--places_type', 
-        widget='Dropdown',
         type=str,
-
         default=os.environ.get("PLACES_TYPE"),
-
         choices=[
             "accounting",
             "airport",
