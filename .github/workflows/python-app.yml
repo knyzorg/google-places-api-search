@@ -38,14 +38,13 @@ jobs:
         
     - name: Install dependencies
       run: |
-        sudo apt install xvfb
         python -m pip install --upgrade pip
         pip install flake8 pytest attrdict3
-        if [ -f requirements.txt ]; then xvfb-run pip install -r requirements.txt; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
     - name: Run program
       run: |
-        xvfb-run python ./main.py --ignore-gooey
+        python ./main.py
         
     - name: Print output
       run: cat ./main.tsv
