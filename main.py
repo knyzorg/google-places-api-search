@@ -181,7 +181,7 @@ def main():
 
 
     visited_placeid_set = set()
-    file = lower(f"results/{args.places_location}_{args.places_type}.tsv");
+    file = f"results/{args.places_location}_{args.places_type}.tsv".lower()
     try:
         with open(file) as tsv:
             rd = csv.reader(tsv, delimiter="\t")
