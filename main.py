@@ -167,7 +167,7 @@ def main():
     client_max_results = args.places_max_result
     geocode = client.geocode(address=args.places_location)[0]["geometry"]["location"]
 
-    hop_count = 5
+    hop_count = 20
     jump_distance_km = 0.5
 
     print(f"Covering {pow(hop_count*jump_distance_km, 2)*4}km^2")
@@ -179,10 +179,16 @@ def main():
     page_token = None
     result_counter = 0
 
+
     visited_placeid_set = set()
-    
+    file = f"results/{args.places_location}_{args.places_type}.tsv";
+    with open(file) as tsv:
+        rd = csv.reader(tsv, delimiter="\t")
+        for row in rd:
+            visited_placeid_set.add(row[0])
+
     # get complete details of each place
-    with open(f"results/{args.places_location}_{args.places_type}.tsv", "wt", newline="", encoding="utf-8") as tsv:
+    with open(file, "at", newline="", encoding="utf-8") as tsv:
         tsv_write = csv.writer(tsv, delimiter="\t")
 
         # write columns
