@@ -188,7 +188,7 @@ def main():
             for row in rd:
                 visited_placeid_set.add(row[0])
     except FileNotFoundError:
-
+        print("no existing tsv")
         
     # get complete details of each place
     with open(file, "at", newline="", encoding="utf-8") as tsv:
