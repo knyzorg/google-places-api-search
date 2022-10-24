@@ -47,7 +47,12 @@ jobs:
     - name: Run program
       run: |
         python ./main.py
-        
+    
+    - name: Sort TSVs
+      run: |
+        find . -type f -exec sort {} -o {} \;
+      working-directory: results
+      
     - name: Save results
       run: |
         git config --global user.email "slava@knyazev.io"
