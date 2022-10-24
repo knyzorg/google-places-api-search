@@ -167,8 +167,8 @@ def main():
     client_max_results = args.places_max_result
     geocode = client.geocode(address=args.places_location)[0]["geometry"]["location"]
 
+    hop_count = 10
     jump_distance_km = 0.5
-
     jump_latitude_deg = jump_distance_km/110.574
     # In-exact but calculating it accurately is hard
     jump_longitude_deg = jump_distance_km/(111.320*math.cos(jump_latitude_deg))
@@ -185,6 +185,7 @@ def main():
 
         # write columns
         tsv_write.writerow([
+            "ID",
             "Name",
             "Address",
             "Phone Number",
@@ -198,8 +199,8 @@ def main():
             "Sunday Hours"
         ])
     
-        for latDiff in range(-10, +10):
-            for lngDiff in range(-10, +10):
+        for latDiff in range(-hop_count, +hop_count):
+            for lngDiff in range(-hop_count, +hop_count):
                 local_counter = 0
                 # if counter is less than max results
                 while result_counter <= client_max_results:
@@ -213,7 +214,8 @@ def main():
                     # time to serve the next page token
                     time.sleep(2)
 
-                    print(f"Running search: {geocode['lat']+latDiff*jump_latitude_deg},{geocode['lng']+lngDiff*jump_longitude_deg}")
+                    location = f"{geocode['lat']+latDiff*jump_latitude_deg},{geocode['lng']+lngDiff*jump_longitude_deg}"
+                    print(f"Running search: {location} {(latDiff+hop_count)*hop_count+(hop_count+lngDiff)} until {hop_count*hop_count*4}")
                     places = client.places(
 
                         # type i.e restaurant
@@ -263,6 +265,7 @@ def main():
 
                         # write initial fields 
                         tsv_fields = [
+                            place_id,
                             place.get("name") or "n/a",
                             place.get("formatted_address") or "n/a",
                             place.get("formatted_phone_number") or "n/a",
