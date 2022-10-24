@@ -167,7 +167,7 @@ def main():
     client_max_results = args.places_max_result
     geocode = client.geocode(address=args.places_location)[0]["geometry"]["location"]
 
-    hop_count = 20
+    hop_count = 100
     jump_distance_km = 0.5
 
     print(f"Covering {pow(hop_count*jump_distance_km, 2)*4}km^2")
@@ -181,31 +181,41 @@ def main():
 
 
     visited_placeid_set = set()
-    file = f"results/{args.places_location}_{args.places_type}.tsv";
-    with open(file) as tsv:
-        rd = csv.reader(tsv, delimiter="\t")
-        for row in rd:
-            visited_placeid_set.add(row[0])
+    for file in os.listdir("results"):
+        print(f"Reading {file}")
+        with open(f"results/{file}") as tsv:
+            rd = csv.reader(tsv, delimiter="\t")
+            for row in rd:
+                visited_placeid_set.add(row[0])
+    
+    print(f"Found {len(visited_placeid_set)} existing places to ignore")
+    
+    file = f"results/{args.places_location}_{args.places_type}.tsv"
 
     # get complete details of each place
     with open(file, "at", newline="", encoding="utf-8") as tsv:
-        tsv_write = csv.writer(tsv, delimiter="\t")
 
-        # write columns
-        tsv_write.writerow([
-            "0_ID",
-            "Name",
-            "Address",
-            "Phone Number",
-            "Website",
-            "Monday Hours",
-            "Tuesday Hours",
-            "Wednesday Hours",
-            "Thursday Hours",
-            "Friday Hours",
-            "Saturday Hours",
-            "Sunday Hours"
-        ])
+        tsv_write = csv.writer(tsv, delimiter="\t")
+        tsv.seek(0, os.SEEK_END) # go to end of file
+        if tsv.tell(): # if current position is truish (i.e != 0)
+            tsv.seek(0) # rewind the file for later use 
+        else:
+            print("file does not yet exist")
+            # write columns
+            tsv_write.writerow([
+                "0_ID",
+                "Name",
+                "Address",
+                "Phone Number",
+                "Website",
+                "Monday Hours",
+                "Tuesday Hours",
+                "Wednesday Hours",
+                "Thursday Hours",
+                "Friday Hours",
+                "Saturday Hours",
+                "Sunday Hours"
+            ])
     
         for latDiff in range(-hop_count, +hop_count):
             for lngDiff in range(-hop_count, +hop_count):
