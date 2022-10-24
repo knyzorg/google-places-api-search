@@ -6,8 +6,6 @@ name: Query Location
 on:
   workflow_dispatch:
     inputs:
-      places_search: 
-        type: text
       places_location:
         type: text
         default: 'Ottawa'
@@ -19,7 +17,6 @@ on:
         default: '9999999'
 
 env:
-  PLACES_SEARCH: ${{ github.event.inputs.places_search }}
   PLACES_LOCATION: ${{ github.event.inputs.places_location }}
   PLACES_TYPE: ${{ github.event.inputs.places_type }}
   PLACES_MAX_RESULT: ${{ github.event.inputs.places_max_result }}

@@ -6,6 +6,7 @@ import argparse
 import dotenv
 import textwrap
 import googlemaps
+import math
 
 dotenv.load_dotenv()
 
@@ -25,19 +26,6 @@ def main():
         help="google project api key " + \
             "make sure places and geocode API " + 
             "is enabled.",
-    )
-
-    # Required argment places_search
-    # filter the search results using a certain keyword
-    # i.e coffee pizza
-    parser.add_argument(
-        "--places_search",
-        type=str,
-
-        default=os.environ.get("PLACES_SEARCH"),
-        
-        help="filter the search results using a certain keyword" + \
-            "i.e coffee pizza",
     )
 
     # Required argumnet places_location
@@ -177,15 +165,22 @@ def main():
     # Google maps client
     client = googlemaps.Client(args.google_api_key)
     client_max_results = args.places_max_result
-    geocode = client.geocode(address=args.places_location)[0] \
-        ["geometry"]["location"]
+    geocode = client.geocode(address=args.places_location)[0]["geometry"]["location"]
 
+    jump_distance_km = 0.5
+
+    jump_latitude_deg = jump_distance_km/110.574
+    # In-exact but calculating it accurately is hard
+    jump_longitude_deg = jump_distance_km/(111.320*math.cos(jump_latitude_deg))
     
     # token for getting the next results
     page_token = None
+    result_counter = 0
 
+    visited_placeid_set = set()
+    
     # get complete details of each place
-    with open(f"results/{args.places_search}_{args.places_location}_{args.places_type}.tsv", "wt", newline="", encoding="utf-8") as tsv:
+    with open(f"results/{args.places_location}_{args.places_type}.tsv", "wt", newline="", encoding="utf-8") as tsv:
         tsv_write = csv.writer(tsv, delimiter="\t")
 
         # write columns
@@ -203,130 +198,136 @@ def main():
             "Sunday Hours"
         ])
     
-    
-        result_counter = 0
-        # if counter is less than max results
-        while result_counter <= client_max_results:
-    
-            if page_token is None and result_counter > 0:
-                print("Process complete");
-                break
+        for latDiff in range(-10, +10):
+            for lngDiff in range(-10, +10):
+                local_counter = 0
+                # if counter is less than max results
+                while result_counter <= client_max_results:
             
-            if page_token is not None:
-                # delay the next request
-                # sometimes google server needs
-                # time to serve the next page token
-                time.sleep(0.05)
-            data = client.places(
+                    if page_token is None and local_counter > 0:
+                        print("Process complete")
+                        break
+                    
+                    # delay the next request
+                    # sometimes google server needs
+                    # time to serve the next page token
+                    time.sleep(2)
 
-                # query i.e coffee shop
-                query=args.places_search,
+                    print(f"Running search: {geocode['lat']+latDiff*jump_latitude_deg},{geocode['lng']+lngDiff*jump_longitude_deg}")
+                    places = client.places(
 
-                # type i.e restaurant
-                type=args.places_type,
+                        # type i.e restaurant
+                        type=args.places_type,
 
-                # lat ang long from geocode
-                location=f"{geocode['lat']},{geocode['lng']}",
-                page_token=page_token
-            )
+                        # lat ang long from geocode
+                        location=f"{geocode['lat']+latDiff*jump_latitude_deg},{geocode['lng']+lngDiff*jump_longitude_deg}",
+                        extra_params={'rank_by': 'distance'},
+                        page_token=page_token
+                    )
 
-            # assign next page token
-            page_token = data.get("next_page_token")
+                    # assign next page token
+                    page_token = places.get("next_page_token")
 
-            # for each data results 
-            for place in data["results"]:
-                
-                # skip if the business if closed
-                if place["business_status"] != "OPERATIONAL":
-                    continue
+                    # for each places results 
+                    for place in places["results"]:
+                        
+                        # skip if the business if closed
+                        if place["business_status"] != "OPERATIONAL":
+                            continue
+
+                        place_id = place["place_id"]
+                        # Skip place already visited
+                        if place_id in visited_placeid_set:
+                            print(f"Already encountered {place_id}")
+                            time.sleep(0.05)
+                            continue
+
+                        visited_placeid_set.add(place_id)
+                        result_counter += 1
+                        local_counter += 1
+                        # request for specific details of a place
+                        time.sleep(0.05)
+                        place_details = client.place(place_id=place_id,
+                            fields=[
+                                "name",
+                                "formatted_address",
+                                "opening_hours",
+                                "formatted_phone_number",
+                                "website"
+                            ]
+                        )
+
+                        # place details
+                        place = place_details["result"]
+                        print(f"{result_counter}: {place['name']}")
+
+                        # write initial fields 
+                        tsv_fields = [
+                            place.get("name") or "n/a",
+                            place.get("formatted_address") or "n/a",
+                            place.get("formatted_phone_number") or "n/a",
+                            place.get("website") or "n/a"
+                        ]
+
+                        
 
 
-                result_counter += 1
+                        # parse and clean opening hours
+                        opening_fields = []
+                        opening_hours = place.get("opening_hours")
+                        
+                        # container for days
+                        days = [
+                            "Monday", 
+                            "Tuesday", 
+                            "Wednesday", 
+                            "Thursday", 
+                            "Friday", 
+                            "Saturday", 
+                            "Sunday"
+                        ]
 
-                place_id = place["place_id"]
-                # request for specific details of a place
-                time.sleep(0.05)
-                data = client.place(place_id=place_id,
-                    fields=[
-                        "name",
-                        "formatted_address",
-                        "opening_hours",
-                        "formatted_phone_number",
-                        "website"
-                    ]
-                )
+                        # we only parse if it exists
+                        if opening_hours:
+                            # loop through each day
+                            for index, day in enumerate(days):          
+                                try:
+                                    period = opening_hours["periods"][index]
+                                    
+                                    
+                                    # get opening closing periods
+                                    _open = period.get("open")
+                                    
+                                    _close = period.get("close")
+                                    
+                                    # 2200 -> 22:00
+                                    opening_hour = ":".join(textwrap.wrap(_open["time"], 2))
+                                    if _close is None:    
+                                        closing_hour = ""                            
+                                    else:
+                                        closing_hour = ":".join(textwrap.wrap(_close["time"], 2))
 
-                # place details
-                place = data["result"]
-                print(f"{result_counter}: {place['name']}")
-
-                # write initial fields 
-                tsv_fields = [
-                    place.get("name") or "n/a",
-                    place.get("formatted_address") or "n/a",
-                    place.get("formatted_phone_number") or "n/a",
-                    place.get("website") or "n/a"
-                ]
-
-                
-
-
-                # parse and clean opening hours
-                opening_fields = []
-                opening_hours = place.get("opening_hours")
-                
-                # container for days
-                days = [
-                    "Monday", 
-                    "Tuesday", 
-                    "Wednesday", 
-                    "Thursday", 
-                    "Friday", 
-                    "Saturday", 
-                    "Sunday"
-                ]
-
-                # we only parse if it exists
-                if opening_hours:
-                    # loop through each day
-                    for index, day in enumerate(days):          
-                        try:
-                            period = opening_hours["periods"][index]
-                            
-                            
-                            # get opening closing periods
-                            _open = period.get("open")
-                            
-                            _close = period.get("close")
-                            
-                            # 2200 -> 22:00
-                            opening_hour = ":".join(textwrap.wrap(_open["time"], 2))
-                            if _close is None:    
-                                closing_hour = ""                            
-                            else:
-                                closing_hour = ":".join(textwrap.wrap(_close["time"], 2))
+                                        
+                                    opening_fields.append(f"{opening_hour} - {closing_hour}")
+                                
+                                except IndexError:
+                                    # Fallback if index of day
+                                    # does not exist
+                                    opening_fields.append("n/a")
 
                                 
-                            opening_fields.append(f"{opening_hour} - {closing_hour}")
-                        
-                        except IndexError:
-                            # Fallback if index of day
-                            # does not exist
-                            opening_fields.append("n/a")
+                        else:
+                            # fallback if no hours specified
+                            opening_fields = ["n/a" for x in days]
+
 
                         
-                else:
-                    # fallback if no hours specified
-                    opening_fields = ["n/a" for x in days]
-
-
-                
-                # combine fields
-                tsv_fields = tsv_fields + opening_fields
-                
-                # finally write the rows
-                tsv_write.writerow(tsv_fields)
-                tsv.flush()
+                        # combine fields
+                        tsv_fields = tsv_fields + opening_fields
+                        
+                        # finally write the rows
+                        tsv_write.writerow(tsv_fields)
+                        tsv.flush()
 
         # end
         tsv.close()
