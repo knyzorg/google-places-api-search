@@ -181,12 +181,15 @@ def main():
 
 
     visited_placeid_set = set()
-    file = f"results/{args.places_location}_{args.places_type}.tsv";
-    with open(file) as tsv:
-        rd = csv.reader(tsv, delimiter="\t")
-        for row in rd:
-            visited_placeid_set.add(row[0])
+    file = lower(f"results/{args.places_location}_{args.places_type}.tsv");
+    try:
+        with open(file) as tsv:
+            rd = csv.reader(tsv, delimiter="\t")
+            for row in rd:
+                visited_placeid_set.add(row[0])
+    except FileNotFoundError:
 
+        
     # get complete details of each place
     with open(file, "at", newline="", encoding="utf-8") as tsv:
         tsv_write = csv.writer(tsv, delimiter="\t")
