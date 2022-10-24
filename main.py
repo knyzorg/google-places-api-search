@@ -167,8 +167,10 @@ def main():
     client_max_results = args.places_max_result
     geocode = client.geocode(address=args.places_location)[0]["geometry"]["location"]
 
-    hop_count = 10
+    hop_count = 5
     jump_distance_km = 0.5
+
+    print(f"Covering {pow(hop_count*jump_distance_km, 2)*4}km^2")
     jump_latitude_deg = jump_distance_km/110.574
     # In-exact but calculating it accurately is hard
     jump_longitude_deg = jump_distance_km/(111.320*math.cos(jump_latitude_deg))
@@ -185,7 +187,7 @@ def main():
 
         # write columns
         tsv_write.writerow([
-            "ID",
+            "0_ID",
             "Name",
             "Address",
             "Phone Number",
@@ -205,9 +207,6 @@ def main():
                 # if counter is less than max results
                 while result_counter <= client_max_results:
             
-                    if page_token is None and local_counter > 0:
-                        print("Process complete")
-                        break
                     
                     # delay the next request
                     # sometimes google server needs
@@ -331,6 +330,11 @@ def main():
                         # finally write the rows
                         tsv_write.writerow(tsv_fields)
                         tsv.flush()
+
+                    if page_token is None:
+                        break
+                    else:
+                        print(f"Loading next page {page_token}...")
 
         # end
         tsv.close()
