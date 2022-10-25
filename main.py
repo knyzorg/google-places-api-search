@@ -7,6 +7,7 @@ import dotenv
 import textwrap
 import googlemaps
 import math
+import random
 
 dotenv.load_dotenv()
 
@@ -217,8 +218,8 @@ def main():
                 "Sunday Hours"
             ])
     
-        for latDiff in range(-hop_count, +hop_count):
-            for lngDiff in range(-hop_count, +hop_count):
+        for latDiff in random.shuffle(range(-hop_count, +hop_count)):
+            for lngDiff in random.shuffle(range(-hop_count, +hop_count)):
                 local_counter = 0
                 # if counter is less than max results
                 while result_counter <= client_max_results:
@@ -230,14 +231,14 @@ def main():
                     time.sleep(2)
 
                     location = f"{geocode['lat']+latDiff*jump_latitude_deg},{geocode['lng']+lngDiff*jump_longitude_deg}"
-                    print(f"Running search: {location} {(latDiff+hop_count)*hop_count+(hop_count+lngDiff)} until {hop_count*hop_count*4}")
+                    print(f"Running search: {location} {(latDiff+hop_count)*hop_count+(hop_count+lngDiff)})
                     places = client.places(
 
                         # type i.e restaurant
                         type=args.places_type,
 
                         # lat ang long from geocode
-                        location=f"{geocode['lat']+latDiff*jump_latitude_deg},{geocode['lng']+lngDiff*jump_longitude_deg}",
+                        location=location,
                         extra_params={'rank_by': 'distance'},
                         page_token=page_token
                     )
