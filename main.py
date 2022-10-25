@@ -218,7 +218,7 @@ def main():
                 "Sunday Hours"
             ])
     
-        ranges = range(-hop_count, +hop_count)
+        ranges = list(range(-hop_count, +hop_count))
         random.shuffle(ranges)
         for latDiff in ranges:
             for lngDiff in ranges:
