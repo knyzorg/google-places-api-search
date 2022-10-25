@@ -218,8 +218,10 @@ def main():
                 "Sunday Hours"
             ])
     
-        for latDiff in random.shuffle(range(-hop_count, +hop_count)):
-            for lngDiff in random.shuffle(range(-hop_count, +hop_count)):
+        ranges = range(-hop_count, +hop_count)
+        random.shuffle(ranges)
+        for latDiff in ranges:
+            for lngDiff in ranges:
                 local_counter = 0
                 # if counter is less than max results
                 while result_counter <= client_max_results:
@@ -231,7 +233,7 @@ def main():
                     time.sleep(2)
 
                     location = f"{geocode['lat']+latDiff*jump_latitude_deg},{geocode['lng']+lngDiff*jump_longitude_deg}"
-                    print(f"Running search: {location} {(latDiff+hop_count)*hop_count+(hop_count+lngDiff)})
+                    print(f"Running search: {location} {(latDiff+hop_count)*hop_count+(hop_count+lngDiff)}")
                     places = client.places(
 
                         # type i.e restaurant
